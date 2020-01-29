@@ -8,9 +8,33 @@ const clearBtn = document.querySelector('.clear-tasks')
 loadEventListeners();
 
 function loadEventListeners(){
+    document.addEventListener('DOMContentLoaded', getTasks);
     form.addEventListener('submit', addTask);
-        
+    
     taskList.addEventListener('click',removeTask);
+    filter.addEventListener('keyup',filterTasks)
+    clearBtn.addEventListener('click', ClearTasks)
+}
+
+function getTasks(){
+    let tasks;
+    if(localStorage.getItem('tasks') === null){
+        tasks = [];
+    } else {
+        tasks = JSON.parse(localStorage.getItem('tasks'));
+    }
+
+    tasks.forEach(function(task) {
+        const li = document.createElement('li');
+        li.className = 'collection-item';
+        li.appendChild(document.createTextNode(task));
+
+        const removeLink = document.createElement('a');
+        removeLink.classList = 'delete-item secondary-content';
+        removeLink.innerHTML = 'x';
+        taskList.appendChild(removeLink);
+        taskList.appendChild(li);
+    });
 }
 
 function addTask(event){
@@ -31,8 +55,10 @@ function addTask(event){
         removeLink.innerHTML = 'x';
         taskList.appendChild(removeLink);
         taskList.appendChild(li);
+    
+        StorageInLocalStorage(taskInput.value);
+        taskInput.value = '';
     }
-    StorageInLocalStorage(taskInput.value);
     event.preventDefault();
 }
 
@@ -74,4 +100,28 @@ function removeFromLocalStorage(taskItem){
     });
 
     localStorage.setItem('tasks',JSON.stringify(tasks));
+}
+
+function filterTasks (event){
+    const text = event.target.value.toLowerCase();
+
+    document.querySelectorAll('.collection-item').forEach(task => {
+        const taskValue = task.firstChild.textContent;
+        if(taskValue.toLowerCase().indexOf(text) != -1){
+            task.style.display = 'block';
+        } else {
+            task.style.display = 'none';
+        }
+    })
+}
+
+function ClearTasks (event){
+    clearTasksFromLocalStorage();
+    while(taskList.firstChild){
+        taskList.removeChild(taskList.firstChild);
+    }
+}
+
+function clearTasksFromLocalStorage (){
+    localStorage.clear();
 }
